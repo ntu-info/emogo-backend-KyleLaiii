@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emogo 使用紀錄</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .controls a {
+            display: inline-block;
+            padding: 10px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .controls a:hover {
+            background: #5568d3;
+        }
+        
+        .record-count {
+            font-size: 16px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .table-wrapper {
+            padding: 30px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e9ecef;
+            color: #555;
+        }
+        
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .sentiment-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        .sentiment-很好 {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .sentiment-較好 {
+            background: #cfe2ff;
+            color: #084298;
+        }
+        
+        .sentiment-普通 {
+            background: #fff3cd;
+            color: #664d03;
+        }
+        
+        .sentiment-較差 {
+            background: #f8d7da;
+            color: #842029;
+        }
+        
+        .sentiment-很差 {
+            background: #f5c2c7;
+            color: #842029;
+        }
+        
+        .sentiment-value {
+            background: #e7f3ff;
+            color: #0c63e4;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .timestamp {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .video-path {
+            max-width: 300px;
+            word-break: break-all;
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .coordinates {
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            color: #999;
+        }
+        
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .footer {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .controls a {
+                text-align: center;
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+            
+            .video-path {
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Emogo 使用紀錄</h1>
+            <p>情緒追蹤應用程式的資料總覽</p>
+        </div>
+        
+        <div class="controls">
+            <div class="record-count">
+                📊 共計 <strong>{{ records|length }}</strong> 筆紀錄
+            </div>
+            <a href="/export/csv" download>📥 下載 CSV 檔案</a>
+        </div>
+        
+        <div class="table-wrapper">
+            {% if records %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>心情</th>
+                            <th>心情值</th>
+                            <th>緯度</th>
+                            <th>經度</th>
+                            <th>記錄時間</th>
+                            <th>上傳時間</th>
+                            <th>影片路徑</th>
+                            <th>影片下載</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                <td><strong>{{ record.id }}</strong></td>
+                                <td>
+                                    <span class="sentiment-badge sentiment-{{ record.sentiment }}">
+                                        {{ record.sentiment }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="sentiment-value">{{ record.sentimentValue }}/5</span>
+                                </td>
+                                <td>
+                                    {% if record.latitude %}
+                                        <span class="coordinates">{{ "%.6f"|format(record.latitude) }}</span>
+                                    {% else %}
+                                        <span style="color: #ccc;">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if record.longitude %}
+                                        <span class="coordinates">{{ "%.6f"|format(record.longitude) }}</span>
+                                    {% else %}
+                                        <span style="color: #ccc;">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="timestamp">{{ record.timestamp }}</span>
+                                </td>
+                                <td>
+                                    <span class="timestamp">{{ record.exportDate }}</span>
+                                </td>
+                                <td>
+                                    <span class="video-path">{{ record.videoPath }}</span>
+                                </td>
+                                <td>
+                                    {% if record.videoBase64 %}
+                                        <a href="/records/{{ record.id }}/video">下載影片</a>
+                                    {% else %}
+                                        <span style="color: #ccc;">無影片</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <h3>暫無紀錄</h3>
+                    <p>目前還沒有任何情緒紀錄，請在應用程式中添加紀錄。</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="footer">
+            <p>Emogo Backend API • 最後更新：{{ now() }}</p>
+        </div>
+    </div>
+</body>
+</html>

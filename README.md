@@ -1,29 +1,77 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/e7FBMwSa)
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=21872702&assignment_repo_type=AssignmentRepo)
-# Deploy FastAPI on Render
+# EmoGo 後端與資料串接說明
 
-Use this repo as a template to deploy a Python [FastAPI](https://fastapi.tiangolo.com) service on Render.
+本專案延伸自先前的 **EmoGo 情緒與影片紀錄 App**。  
+這次保留原本前端 App 的操作流程，新增：
 
-See https://render.com/docs/deploy-fastapi or follow the steps below:
+- 後端 API（FastAPI）
+- 雲端資料庫（MongoDB Atlas）
+- 可調整的提醒時間機制
+- 錄影後自動上傳紀錄到雲端
 
-## Manual Steps
+---
 
-1. You may use this repository directly or [create your own repository from this template](https://github.com/render-examples/fastapi/generate) if you'd like to customize the code.
-2. Create a new Web Service on Render.
-3. Specify the URL to your new repository or this repository.
-4. Render will automatically detect that you are deploying a Python service and use `pip` to download the dependencies.
-5. Specify the following as the Start Command.
+## 📱 前端 App（React Native / Expo）
 
-    ```shell
-    uvicorn main:app --host 0.0.0.0 --port $PORT
-    ```
+目前使用的 App 版本（APK）：  
+👉 <https://expo.dev/accounts/kylelai/projects/emogo-frontend/builds/b119c7ad-f3e0-4e72-8d9a-7db6c01f5a47>
 
-6. Click Create Web Service.
+### App 主要流程
 
-Or simply click:
+1. 使用者先在主畫面選擇 **心情指數（1–5 分）**。
+2. 選好心情後才能進入錄影畫面。
+3. 錄影結束後，App 會自動記錄並上傳：
+   - 心情文字與數值
+   - 目前經緯度
+   - 錄製完成的影片（Base64 編碼）
+   - 記錄時間與上傳時間
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/render-examples/fastapi)
+### 提醒功能（新功能）
 
-## Thanks
+- 預設每天三個提醒時間：**09:00、15:00、21:00**。
+- 使用者可以在「設定」頁：
+  - 修改每一個提醒時間
+  - 新增更多提醒
+  - 刪除多餘提醒（至少保留 3 個）
 
-Thanks to [Harish](https://harishgarg.com) for the [inspiration to create a FastAPI quickstart for Render](https://twitter.com/harishkgarg/status/1435084018677010434) and for some sample code!
+---
+
+## ☁️ 後端服務（FastAPI + MongoDB Atlas）
+
+後端部署於 Render：  
+👉 <https://emogo-backend-kylelaiii.onrender.com>
+
+主要工作：
+
+- 接收 App 上傳的紀錄，寫入 MongoDB Atlas
+- 透過網頁 `/export` 顯示所有紀錄
+- 提供 CSV 匯出與影片下載功能
+
+---
+
+## 🔌 API 端點總覽
+
+Base URL：`https://emogo-backend-kylelaiii.onrender.com`
+
+- `POST /records`  
+  接收前端送來的一筆紀錄（心情、經緯度、時間、影片 Base64…）並寫入 MongoDB。
+
+- `GET /export`  
+  以 HTML 表格顯示所有紀錄，欄位包含：
+  - ID、心情、心情值、緯度、經度  
+  - 記錄時間（台北時間）、上傳時間（台北時間）  
+  - 影片路徑、影片下載連結（若有影片）
+
+- `GET /export/csv`  
+  將所有紀錄（不含影片檔本身）匯出為 `emogo_records.csv`，內容欄位與 `/export` 的表格對應。
+
+- `GET /records/{record_id}/video`  
+  依照紀錄的 `id` 回傳該筆的影片檔（`video/mp4`），供下載或後續分析使用。
+
+---
+
+## 📊 使用方式簡述
+
+1. 在手機安裝 EmoGo APK，正常操作 App（選心情 → 錄影）。
+2. 每次錄影完成後，紀錄會自動上傳到 MongoDB Atlas。
+3. 開啟後端網址 `/export` 可以查看所有紀錄、下載單筆影片。
+4. 需要進一步分析時，可透過 `/export/csv` 下載 CSV，在 Excel / R / Python 中使用。
