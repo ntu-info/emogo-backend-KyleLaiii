@@ -13,7 +13,7 @@
 ## 📱 前端 App（React Native / Expo）
 
 目前使用的 App 版本（APK）：  
-👉 <https://expo.dev/accounts/kylelai/projects/emogo-frontend/builds/b119c7ad-f3e0-4e72-8d9a-7db6c01f5a47>
+👉 <https://expo.dev/accounts/kylelai/projects/emogo-frontend/builds/563cde7e-95cb-4a15-b9d3-a8d8a470bd9c>
 
 ### App 主要流程
 
