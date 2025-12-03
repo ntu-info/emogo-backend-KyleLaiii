@@ -292,7 +292,8 @@
                                 </td>
                                 <td>
                                     {% if record.videoBase64 %}
-                                        <a href="/records/{{ record.id }}/video">下載影片</a>
+                                        <!-- 這裡改成使用 mongoId（唯一、不會重複） -->
+                                        <a href="/records/{{ record.mongoId }}/video">下載影片</a>
                                     {% else %}
                                         <span style="color: #ccc;">無影片</span>
                                     {% endif %}

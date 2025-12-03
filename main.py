@@ -28,6 +28,8 @@ from fastapi.responses import StreamingResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase, AsyncIOMotorCollection
+from bson import ObjectId
+from bson.errors import InvalidId
 
 # Load environment variables from .env file in development
 try:
@@ -225,9 +227,10 @@ async def export_html(request: Request):
                 record["timestamp"] = format_dt_taipei(record["timestamp"])
             if isinstance(record.get("exportDate"), datetime):
                 record["exportDate"] = format_dt_taipei(record["exportDate"])
-            # Remove MongoDB ObjectId from display
+
+            # 把 MongoDB 的 _id 轉成字串，給前端當下載用的 ID
             if "_id" in record:
-                del record["_id"]
+                record["mongoId"] = str(record["_id"])
         
         # Render template with records
         return templates.TemplateResponse(
@@ -304,16 +307,20 @@ async def export_csv():
     
 
 @app.get("/records/{record_id}/video")
-async def download_video(record_id: int):
+async def download_video(record_id: str):
     """
-    依照 record 的 id 下載影片(mp4)
-    - 從 MongoDB 找出該 id 的紀錄
-    - 讀取其中的 videoBase64 欄位
-    - 解碼成 bytes 後回傳 video/mp4 檔案
+    依照 MongoDB 的 _id 下載影片(mp4)
+    - record_id 現在是一個 ObjectId 的字串（例如 "674f3c0c8d7b2f..."）
     """
     try:
-        # 用 id 欄位查 MongoDB 的紀錄（不是 _id）
-        record = await mongodb_collection.find_one({"id": record_id})
+        # 把字串轉成真正的 ObjectId，如果格式錯會丟 400
+        try:
+            oid = ObjectId(record_id)
+        except InvalidId:
+            raise HTTPException(status_code=400, detail="Invalid record id")
+
+        # 用 _id 查 MongoDB 的紀錄（這是唯一、不會重複的）
+        record = await mongodb_collection.find_one({"_id": oid})
         if not record:
             raise HTTPException(status_code=404, detail="Record not found")
 
@@ -327,16 +334,16 @@ async def download_video(record_id: int):
             raise HTTPException(status_code=500, detail=f"Error decoding video: {e}")
 
         # 用 StreamingResponse 回傳 mp4
+        # 檔名可以照舊用 record 裡的 id（App 的流水號），只是名字而已
         return StreamingResponse(
             io.BytesIO(video_bytes),
             media_type="video/mp4",
             headers={
-                "Content-Disposition": f'attachment; filename="emogo_record_{record_id}.mp4"'
+                "Content-Disposition": f'attachment; filename="emogo_record_{record.get("id", "unknown")}.mp4"'
             },
         )
 
     except HTTPException:
-        # 直接往外丟，讓 FastAPI 處理
         raise
     except Exception as e:
         print(f"✗ Error serving video for record {record_id}: {e}")
